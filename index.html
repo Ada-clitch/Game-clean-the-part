@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clean the Park! 🌳🗑</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(to right, #a8edea, #fed6e3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: Arial, sans-serif;
+      color: #333;
+      text-shadow: 1px 1px 2px #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #bin {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 50px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 20px;
+      padding: 10px;
+      transition: transform 0.3s ease;
+    }
+    #message, #level {
+      margin: 10px;
+      font-size: 20px;
+    }
+    .trash {
+      position: absolute;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clean the Park! 🌳🗑</h1>
+  <div id="message">Catch the trash and drag it to the bin!</div>
+  <div id="level">Level: 1</div>
+  <div id="bin" ondrop="drop(event)" ondragover="allowDrop(event)">🗑</div>
+
+  <audio>://www.soundjay.com/button/sounds/button-16.mp3</audio>
+
+  <script>
+    class Trash {
+      constructor(id, emoji, size, x, y) {
+        this.id = id;
+        this.emoji = emoji;
+        this.size = size;
+        this.x = x;
+        this.y = y;
+        this.element = null;
+      }
+
+      render() {
+        const trash = document.createElement("div");
+        trash.className = "trash";
+        trash.innerText = this.emoji;
+        trash.style.fontSize = `${this.size}px`;
+        trash.style.left = `${this.x}px`;
+        trash.style.top = `${this.y}px`;
+        trash.draggable = true;
+        trash.id = this.id;
+        trash.addEventListener("dragstart", this.drag.bind(this));
+        trash.addEventListener("mousemove", this.escape.bind(this));
+        document.body.appendChild(trash);
+        this.element = trash;
+      }
+
+      drag(ev) {
+        ev.dataTransfer.setData("text", this.id);
+      }
+
+      escape(ev) {
+        const rect = this.element.getBoundingClientRect();
+        const mouseX = ev.clientX;
+        const mouseY = ev.clientY;
+        const dx = rect.left + rect.width / 2 - mouseX;
+        const dy = rect.top + rect.height / 2 - mouseY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < 50) {
+          const newX = Math.min(Math.max(rect.left + dx * 0.5, 0), window.innerWidth - rect.width);
+          const newY = Math.min(Math.max(rect.top + dy * 0.5, 0), window.innerHeight - rect.height);
+          this.element.style.left = `${newX}px`;
+          this.element.style.top = `${newY}px`;
+        }
+      }
+    }
+
+    let level = 1;
+    let trashCount = 3;
+    let recycled = 0;
+    const trashTypes = ["🍌", "🍕", "💩", "🥑", "🍭"];
+    const bin = document.getElementById("bin");
+    const message = document.getElementById("message");
+    const levelDisplay = document.getElementById("level");
+    const catchSound = document.getElementById("catchSound");
+    let trashObjects = [];
+
+    function createTrash(num) {
+      for (let i = 0; i < num; i++) {
+        const id = "trash-" + Date.now() + "-" + i;
+        const emoji = trashTypes[Math.floor(Math.random() * trashTypes.length)];
+        const size = 40 - level * 2;
+        const x = Math.random() * (window.innerWidth - 50);
+        const y = Math.random() * (window.innerHeight - 100);
+        const trash = new Trash(id, emoji, size, x, y);
+        trash.render();
+        trashObjects.push(trash);
+      }
+    }
+
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      const index = trashObjects.findIndex(t => t.id === data);
+      if (index !== -1) {
+        catchSound.play();
+        trashObjects[index].element.remove();
+        trashObjects.splice(index, 1);
+        recycled++;
+        message.innerText = Recycled; `${recycled}`;
+        bin.style.transform = "scale(1.2)";
+        setTimeout(() => bin.style.transform = "scale(1)", 300);
+        if (recycled >= trashCount) {
+          level++;
+          trashCount += 2;
+          recycled = 0;
+          levelDisplay.innerText = Level; `${level}`;
+          message.innerText = "Level up! New trash incoming...";
+          createTrash(trashCount);
+        }
+      }
+    }
+
+    createTrash(trashCount);
+  </script>
+</body>
+</html>
